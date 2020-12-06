@@ -14,4 +14,4 @@
 - Type node app
 
 
-(Pic)[https://i.imgur.com/xODwY2T.png]
+[Pic](https://i.imgur.com/xODwY2T.png)
