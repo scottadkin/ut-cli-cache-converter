@@ -7,7 +7,7 @@ class CacheCoverter{
         try{
 
             console.log(`[------------------------------------------------------]`);
-            console.log(`[-----CLI Unreal Touanemnt Cache Converter-------------]`);
+            console.log(`[-----CLI Unreal Tournament Cache Converter-------------]`);
             console.log(`[------By Scott Adkin 6th December 2020----------------]`);
             console.log(`[------------------------------------------------------]`);
 
