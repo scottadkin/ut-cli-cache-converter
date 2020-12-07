@@ -1,5 +1,7 @@
 const fs = require('fs');
 
+const bOverwrite = false;
+
 class CacheCoverter{
 
     constructor(){
@@ -71,19 +73,22 @@ class CacheCoverter{
         ];
 
         const found = [
-            0,
-            0,
-            0,
-            0,
-            0
+           {"found": 0, "pass": 0, "dup": 0, "fail": 0},
+           {"found": 0, "pass": 0, "dup": 0, "fail": 0},
+           {"found": 0, "pass": 0, "dup": 0, "fail": 0},
+           {"found": 0, "pass": 0, "dup": 0, "fail": 0},
+           {"found": 0, "pass": 0, "dup": 0, "fail": 0}
         ];
 
         let pass = 0;
         let fail = 0;
+        let dups = 0;
 
         let typeIndex = 0;
         let currentDest = 0;
         let currentExt = 0;
+
+        let bCurrentExist = false;
 
         for(let i = 0; i < this.files.length; i++){
 
@@ -95,18 +100,48 @@ class CacheCoverter{
                 
                 if(typeIndex === -1) throw new Error(`Unknown file type`);
 
+                bCurrentExist = false;
                 currentDest = destinations[typeIndex];
                 currentExt = types[typeIndex];
 
-                found[typeIndex]++;
+                found[typeIndex].found++;
 
-                fs.renameSync(`Cache\\${f.guid}.uxx`,`${currentDest}\\${f.name}.${currentExt}`);
-                pass++;
-                console.log(`[Pass]: File Cache\\${f.guid}.uxx converted to ${currentDest}\\${f.name}.${currentExt}`);
+                try{
+
+                    fs.accessSync(`${currentDest}\\${f.name}.${currentExt}`,fs.constants.R_OK);   
+
+                    bCurrentExist = true;
+
+                    if(!bOverwrite){
+                        console.log(`[Warning]: File ${currentDest}\\${f.name}.${currentExt} already Exists, not replacing.`);
+                    }
+
+                    dups++;
+                    found[typeIndex].dup++;      
+
+                }catch(err){
+                    if(err.code !== 'ENOENT') console.log(err);
+                }
+
+
+                if(bOverwrite || !bCurrentExist){
+
+                    fs.renameSync(`Cache\\${f.guid}.uxx`,`${currentDest}\\${f.name}.${currentExt}`);
+                    found[typeIndex].pass++;
+                    pass++;
+                    console.log(`[Pass]: File Cache\\${f.guid}.uxx converted to ${currentDest}\\${f.name}.${currentExt}.`);
+                }else{
+                    fs.rmSync(`Cache\\${f.guid}.uxx`);
+                    console.log(`[Pass]: Cache\\${f.guid}.uxx Deleted.`);
+                }
+
+                    
 
             }catch(err){
 
                 fail++;
+                found[typeIndex].fail++;
+
                 if(err.code === 'ENOENT'){
                     console.log(`[Warning]: The file ${f.guid}.uxx does not exist, skipping.`);
                 }else{
@@ -117,11 +152,14 @@ class CacheCoverter{
         }
 
         console.log(`[Finished]: Converted a total of ${pass} files out of a total of ${this.files.length}.`);
-        console.log(`[Finished]: ${found[0]} u packages converted.`);
-        console.log(`[Finished]: ${found[1]} Sound packages converted.`);
-        console.log(`[Finished]: ${found[2]} Music packages converted.`);
-        console.log(`[Finished]: ${found[3]} Texture packages converted.`);
-        console.log(`[Finished]: ${found[4]} Maps converted.`);
+        console.log(`[Finished]: Found ${found[0].found} u packages, ${found[0].pass} converted, ${found[0].dup} duplicates, and ${found[0].fail} failed.`);
+        console.log(`[Finished]: Found ${found[1].found} Sound packages, ${found[1].pass} converted, ${found[1].dup} duplicates, and ${found[1].fail} failed.`);
+        console.log(`[Finished]: Found ${found[2].found} Music packages, ${found[2].pass} converted, ${found[2].dup} duplicates, and ${found[2].fail} failed.`);
+        console.log(`[Finished]: Found ${found[3].found} Texture packages, ${found[3].pass} converted, ${found[3].dup} duplicates, and ${found[3].fail} failed.`);
+        console.log(`[Finished]: Found ${found[4].found} Maps, ${found[4].pass} converted, ${found[4].dup} duplicates, and ${found[4].fail} failed.`);
+        console.log(`[Finished]: Failed conversions and usually caused by the file no longer existing in the Cache folder.`);
+        console.log(`[Finished]: Duplicate overwriting is set to ${bOverwrite}, to change this behaviour set bOverwrite to ${!bOverwrite} in app.js.`);
+
     }
 
 
