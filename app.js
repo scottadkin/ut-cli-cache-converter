@@ -1,9 +1,11 @@
 const fs = require('fs');
 const path = require('node:path'); 
+const config = require("./cache-config.json");
 
-const bOverwrite = false;
-const cacheFolder = `Cache`;
-const cacheFile = `cache.ini`;
+
+const bOverwrite = config.bOverwrite;
+const cacheFolder = config.cacheFolder;
+const cacheFile = config.cacheFile;
 
 const cacheIni = path.join(cacheFolder, cacheFile);
 
@@ -21,9 +23,6 @@ class CacheCoverter{
             console.log(`[-------------------------------------------------------]`);
 
             this.files = [];
-
-            //to keep in cache folder and cache.ini
-            this.failedFiles = [];
 
             this.checkFolders();
 
@@ -76,11 +75,10 @@ class CacheCoverter{
         this.lines = this.data.match(reg);
 
         const keyValueReg = /^(.+?)=(.+)\.(.+)$/i;
-        let keyValueResult = 0;
 
         for(let i = 0; i < this.lines.length; i++){
 
-            keyValueResult = keyValueReg.exec(this.lines[i]);
+            const keyValueResult = keyValueReg.exec(this.lines[i]);
 
             if(keyValueResult !== null){
                 this.files.push({
@@ -129,20 +127,15 @@ class CacheCoverter{
 
             const f = this.files[i];
 
-            let bCurrentExist = false;
-            let typeIndex = 0;
-            let currentDest = 0;
-            let currentExt = 0;
-
-            typeIndex = types.indexOf(f.ext.toLowerCase());
+            let typeIndex = types.indexOf(f.ext.toLowerCase());
 
             try{
                 
                 if(typeIndex === -1) throw new Error(`Unknown file type`);
 
-                bCurrentExist = false;
-                currentDest = destinations[typeIndex];
-                currentExt = types[typeIndex];
+                let bCurrentExist = false;
+                const currentDest = destinations[typeIndex];
+                const currentExt = types[typeIndex];
 
                 found[typeIndex].found++;
 
@@ -205,7 +198,7 @@ class CacheCoverter{
         console.log(`[Finished]: Found ${found[3].found} Texture packages, ${found[3].pass} converted, ${found[3].dup} duplicates, and ${found[3].fail} failed.`);
         console.log(`[Finished]: Found ${found[4].found} Maps, ${found[4].pass} converted, ${found[4].dup} duplicates, and ${found[4].fail} failed.`);
         console.log(`[Finished]: Failed conversions are usually caused by the file no longer existing in the Cache folder.`);
-        console.log(`[Finished]: Duplicate overwriting is set to ${bOverwrite}, to change this behaviour set bOverwrite to ${!bOverwrite} in app.js.`);
+        console.log(`[Finished]: Duplicate overwriting is set to ${bOverwrite}, to change this behaviour set bOverwrite to ${!bOverwrite} in cache-config.json.`);
 
     }
 
